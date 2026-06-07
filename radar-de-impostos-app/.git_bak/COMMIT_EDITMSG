@@ -1,0 +1,7 @@
+refactor: Atualizado dashboard para incluir link para página de histórico de cupons
+
+feat: criada página de histórico de cupons que carrega 10 cupons de cada vez, com visualização de detalhes, e opção de deletar cupons
+
+feat: Adicionado Modal que exibe detalhes ou deleta cupons
+
+chore: Criar um utilitário para selecionar ícones de categoria a fim de simplificar o uso de ícones em todos os componentes
