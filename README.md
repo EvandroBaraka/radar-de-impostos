@@ -29,40 +29,6 @@ O **Radar de Impostos** é uma plataforma completa para o gerenciamento e visual
 - **JWT** (Autenticação)
 - **Swagger/OpenAPI** (Documentação da API)
 
-## 📦 Como executar o projeto
-
-### Pré-requisitos
-- Node.js (v18+)
-- PostgreSQL ativo
-- Gerenciador de pacotes (npm ou yarn)
-
-### 1. Clonar o repositório
-```bash
-git clone https://github.com/seu-usuario/radar-de-impostos.git
-cd radar-de-impostos
-```
-
-### 2. Configurar o Backend
-```bash
-cd radar-de-impostos-api
-npm install
-# Configure o arquivo .env com sua DATABASE_URL e JWT_SECRET
-npx prisma migrate dev
-npm run dev
-```
-
-### 3. Configurar o Frontend
-```bash
-cd ../radar-de-impostos-app
-npm install
-# Configure o arquivo .env com a VITE_API_URL
-npm run dev
-```
-
-## 📸 Screenshots
-
-*(Adicione aqui links para as imagens do projeto que estão na pasta /docs)*
-
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
