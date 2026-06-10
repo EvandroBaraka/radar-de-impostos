@@ -209,10 +209,10 @@ export function ReceiptForm({
             </div>
 
             <div className="flex gap-3 items-center justify-center pt-4">
-                <Button type="button" variant="secondary" onClick={onCancel}>
+                <Button type="button" size="sm" variant="secondary" onClick={onCancel}>
                     Escanear novamente
                 </Button>
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" size="sm" variant="primary" disabled={isLoading}>
                     {isLoading ? "Salvando..." : "Salvar cupom"}
                 </Button>
             </div>

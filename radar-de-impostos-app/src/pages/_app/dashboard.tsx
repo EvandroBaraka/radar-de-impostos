@@ -1,29 +1,14 @@
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState, lazy, Suspense, useEffect, useCallback } from "react";
-import {
-    TrendingUp,
-    TrendingDown,
-    DollarSign,
-    Percent,
-    Receipt as ReceiptIcon,
-    Trophy,
-    QrCode,
-} from "lucide-react";
-import {
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    AreaChart,
-    Area,
-} from "recharts";
+import { QrCode } from "lucide-react";
 import { fetchNFCe } from "../../services/fetch-nfce";
 import { saveReceipt, listReceipts, getStats } from "../../services/receipts";
 import { CupomFiscal } from "../../models/CupomFiscal";
 import Loader from "../../components/Loader";
-import { getCategoryIcon } from "../../utils/category-icons";
 import { ReceiptForm, type ReceiptFormData } from "../../components/ReceiptForm";
+import { DashboardStats } from "../../components/DashboardStats";
+import { OverviewChart } from "../../components/OverviewChart";
+import { RecentPurchases } from "../../components/RecentPurchases";
 
 const Modal = lazy(() => import("../../components/Modal"));
 const QrScanner = lazy(() => import("../../components/QrScanner"));
@@ -168,25 +153,6 @@ function Dashboard() {
         }
     };
 
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-        }).format(value);
-    };
-
-    const taxBurden =
-        stats && stats.totalSpent > 0
-            ? ((stats.totalTaxes / stats.totalSpent) * 100).toFixed(1)
-            : "0";
-
-    const mostExpensiveReceipt =
-        receipts.length > 0
-            ? receipts.reduce((prev, current) =>
-                  prev.totalValue > current.totalValue ? prev : current,
-              )
-            : null;
-
     return (
         <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-500">
             {/* Header Section */}
@@ -251,243 +217,15 @@ function Dashboard() {
             </Suspense>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard
-                    title="Total em Impostos este mês"
-                    value={formatCurrency(stats?.totalTaxes || 0)}
-                    change="+0%"
-                    isPositive={true}
-                    icon={DollarSign}
-                />
-                <StatCard
-                    title="Total em Gastos este mês"
-                    value={formatCurrency(stats?.totalSpent || 0)}
-                    change="+0%"
-                    isPositive={true}
-                    icon={ReceiptIcon}
-                />
-                <StatCard
-                    title="Carga Tributária"
-                    value={`${taxBurden}%`}
-                    change="0%"
-                    isPositive={true}
-                    icon={Percent}
-                />
-                <StatCard
-                    title="Nota Mais Cara deste mês"
-                    value={
-                        mostExpensiveReceipt
-                            ? formatCurrency(mostExpensiveReceipt.totalValue)
-                            : "R$ 0,00"
-                    }
-                    description={
-                        mostExpensiveReceipt
-                            ? `${mostExpensiveReceipt.storeName} · ${mostExpensiveReceipt.formatedDate}`
-                            : "Nenhum cupom salvo"
-                    }
-                    icon={Trophy}
-                />
-            </div>
+            <DashboardStats stats={stats} receipts={receipts} />
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Chart Section */}
-                <div className="lg:col-span-2 bg-[#0f172a]/50 border border-[#334155] rounded-2xl p-6 backdrop-blur-sm">
-                    <h3 className="text-lg font-semibold mb-6">
-                        Evolução dos Gastos vs Impostos
-                    </h3>
-                    <div className="h-87.5 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData}>
-                                <defs>
-                                    <linearGradient
-                                        id="colorGastos"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="5%"
-                                            stopColor="#3b82f6"
-                                            stopOpacity={0.3}
-                                        />
-                                        <stop
-                                            offset="95%"
-                                            stopColor="#3b82f6"
-                                            stopOpacity={0}
-                                        />
-                                    </linearGradient>
-                                    <linearGradient
-                                        id="colorImpostos"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="5%"
-                                            stopColor="#ef4444"
-                                            stopOpacity={0.3}
-                                        />
-                                        <stop
-                                            offset="95%"
-                                            stopColor="#ef4444"
-                                            stopOpacity={0}
-                                        />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    stroke="#1e293b"
-                                    vertical={false}
-                                />
-                                <XAxis
-                                    dataKey="name"
-                                    stroke="#475569"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <YAxis
-                                    stroke="#475569"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    tickFormatter={(value) => `R$ ${value}`}
-                                />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: "#0f172a",
-                                        borderColor: "#334155",
-                                        borderRadius: "8px",
-                                        color: "#fff",
-                                    }}
-                                    itemStyle={{ color: "#fff" }}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="gastos"
-                                    name="Gastos"
-                                    stroke="#3b82f6"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorGastos)"
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="impostos"
-                                    name="Impostos"
-                                    stroke="#ef4444"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorImpostos)"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+                <OverviewChart data={chartData} />
 
                 {/* Last Purchases Section */}
-                <div className="bg-[#0f172a]/50 border border-[#334155] rounded-2xl p-6 backdrop-blur-sm">
-                    <h3 className="text-lg font-semibold mb-6">
-                        Últimas Compras
-                    </h3>
-                    <div className="space-y-6">
-                        {receipts.length === 0 ? (
-                            <p className="text-[#90a1b9] text-center py-8">
-                                Nenhum cupom registrado ainda.
-                            </p>
-                        ) : (
-                            receipts.slice(0, 5).map((receipt, index) => {
-                                const Icon = getCategoryIcon(receipt.category);
-                                return (
-                                    <div
-                                        key={receipt.nfeKey || index}
-                                        className="flex items-center justify-between group cursor-pointer"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 shrink-0 rounded-lg bg-[#1e293b] flex items-center justify-center group-hover:bg-[#334155] transition-colors">
-                                                <Icon className="w-5 h-5 text-[#90a1b9]" />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-medium group-hover:text-blue-400 transition-colors">
-                                                    {receipt.storeName}
-                                                </h4>
-                                                <p className="text-xs text-[#475569]">
-                                                    {receipt.formatedDate}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <span className="font-semibold text-sm">
-                                            {receipt.formatedTotalValue}
-                                        </span>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                    {receipts.length > 5 && (
-                        <Link
-                            to="/history"
-                            className="block w-full mt-8 py-2 text-sm text-center text-[#90a1b9] hover:text-white transition-colors border-t border-[#1e293b]"
-                        >
-                            Ver histórico completo
-                        </Link>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-interface StatCardProps {
-    title: string;
-    value: string;
-    change?: string;
-    isPositive?: boolean;
-    description?: string;
-    icon: React.ElementType;
-}
-
-function StatCard({
-    title,
-    value,
-    change,
-    isPositive,
-    description,
-    icon: Icon,
-}: StatCardProps) {
-    return (
-        <div className="bg-[#0f172a]/50 border border-[#334155] rounded-2xl p-6 backdrop-blur-sm hover:border-white/20 transition-colors relative overflow-hidden group">
-            <div className="flex justify-between items-start mb-4">
-                <span className="text-[#90a1b9] text-sm font-medium">
-                    {title}
-                </span>
-                <div className="p-2 rounded-lg bg-[#1e293b] text-[#90a1b9] group-hover:scale-110 transition-transform">
-                    <Icon className="w-4 h-4" />
-                </div>
-            </div>
-            <div className="space-y-1">
-                <h2 className="text-2xl font-bold">{value}</h2>
-                {change && (
-                    <div
-                        className={`flex items-center gap-1 text-xs font-medium ${isPositive ? "text-emerald-400" : "text-rose-400"}`}
-                    >
-                        {isPositive ? (
-                            <TrendingUp className="w-3 h-3" />
-                        ) : (
-                            <TrendingDown className="w-3 h-3" />
-                        )}
-                        {change}
-                        <span className="text-[#475569] ml-1">
-                            em relação ao total
-                        </span>
-                    </div>
-                )}
-                {description && (
-                    <p className="text-xs text-[#475569]">{description}</p>
-                )}
+                <RecentPurchases receipts={receipts} />
             </div>
         </div>
     );
