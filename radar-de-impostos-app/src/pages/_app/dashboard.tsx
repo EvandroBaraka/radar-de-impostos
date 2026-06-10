@@ -9,6 +9,7 @@ import { ReceiptForm, type ReceiptFormData } from "../../components/ReceiptForm"
 import { DashboardStats } from "../../components/DashboardStats";
 import { OverviewChart } from "../../components/OverviewChart";
 import { RecentPurchases } from "../../components/RecentPurchases";
+import { Button } from "../../components/Button";
 
 const Modal = lazy(() => import("../../components/Modal"));
 const QrScanner = lazy(() => import("../../components/QrScanner"));
@@ -105,7 +106,7 @@ function Dashboard() {
             setCupom(null);
             setError(null);
 
-            if (qrCodeData.startsWith("http")) {
+            if (qrCodeData.startsWith("http") && qrCodeData.toLowerCase().includes("nfce")) {
                 fetchData(qrCodeData);
                 setIsScannerOpen(false);
             } else {
@@ -153,6 +154,21 @@ function Dashboard() {
         }
     };
 
+    const handleManualInclusion = () => {
+        const defaultCupom = new CupomFiscal(
+            "",
+            "",
+            "Outros",
+            0,
+            0,
+            new Date(),
+            "",
+        );
+        setCupom(defaultCupom);
+        setIsScannerOpen(false);
+        setIsModalOpen(true);
+    };
+
     return (
         <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-500">
             {/* Header Section */}
@@ -167,17 +183,27 @@ function Dashboard() {
                     </p>
                 </div>
 
-                <button
-                    onClick={() => {
-                        setIsModalOpen(true);
-                        setIsScannerOpen(true);
-                    }}
-                    className="group relative flex items-center gap-2 bg-white text-black px-8 py-4 rounded-xl font-bold transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] active:scale-95 cursor-pointer"
-                >
-                    <div className="absolute -inset-1 bg-linear-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                    <QrCode className="w-5 h-5 relative" />
-                    <span className="relative text-lg">Escanear cupom</span>
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <Button
+                        onClick={() => {
+                            setIsModalOpen(true);
+                            setIsScannerOpen(true);
+                        }}
+                        classes="group relative !py-4 font-bold hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] active:scale-95"
+                    >
+                        <div className="absolute -inset-1 bg-linear-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                        <QrCode className="w-5 h-5 relative" />
+                        <span className="relative text-lg">Escanear cupom</span>
+                    </Button>
+
+                    <Button
+                        onClick={handleManualInclusion}
+                        variant="secondary"
+                        classes="!py-4 font-bold"
+                    >
+                        Incluir cupom manualmente
+                    </Button>
+                </div>
             </div>
 
             {/* Modal de Scanner */}
@@ -185,7 +211,7 @@ function Dashboard() {
                 <Modal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    title="Escanear Cupom Fiscal"
+                    title={isScannerOpen ? "Escanear Cupom Fiscal" : "Incluir Cupom Fiscal"}
                 >
                     {isScannerOpen ? (
                         <QrScanner
