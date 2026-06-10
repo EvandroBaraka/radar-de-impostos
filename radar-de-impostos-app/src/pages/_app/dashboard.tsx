@@ -22,8 +22,8 @@ import { fetchNFCe } from "../../services/fetch-nfce";
 import { saveReceipt, listReceipts, getStats } from "../../services/receipts";
 import { CupomFiscal } from "../../models/CupomFiscal";
 import Loader from "../../components/Loader";
-import { Button } from "../../components/Button";
 import { getCategoryIcon } from "../../utils/category-icons";
+import { ReceiptForm, type ReceiptFormData } from "../../components/ReceiptForm";
 
 const Modal = lazy(() => import("../../components/Modal"));
 const QrScanner = lazy(() => import("../../components/QrScanner"));
@@ -117,6 +117,9 @@ function Dashboard() {
 
     const handleScan = async (qrCodeData: string) => {
         try {
+            setCupom(null);
+            setError(null);
+
             if (qrCodeData.startsWith("http")) {
                 fetchData(qrCodeData);
                 setIsScannerOpen(false);
@@ -130,14 +133,24 @@ function Dashboard() {
         }
     };
 
-    const handleSave = async () => {
-        if (!cupom || !token) return;
+    const onSave = async (data: ReceiptFormData) => {
+        if (!token) return;
 
         try {
             setError(null);
             setIsLoading(true);
 
-            await saveReceipt(cupom, token);
+            const cupomParaSalvar = new CupomFiscal(
+                data.storeName,
+                data.cnpj,
+                data.category,
+                data.totalValue,
+                data.tributes,
+                new Date(data.purchaseDate),
+                data.nfeKey,
+            );
+
+            await saveReceipt(cupomParaSalvar, token);
             setIsModalOpen(false);
             setCupom(null);
 
@@ -216,39 +229,12 @@ function Dashboard() {
                             }
                         />
                     ) : cupom ? (
-                        <div className="flex flex-col items-center justify-center gap-3">
-                            <p className="text-center">
-                                <span className="font-bold">
-                                    {cupom.storeName}
-                                </span>
-                                <br />
-                                <span className="text-sm text-[#90a1b9]">
-                                    Categoria: {cupom.category}
-                                </span>
-                                <br />
-                                CNPJ: {cupom.cnpj} - {cupom.formatedDate}
-                                <br />
-                                Valor Total: {cupom.formatedTotalValue}
-                                <br />
-                                Impostos aproximados: {cupom.formatedTributes}
-                                <br />
-                                <span className="text-xs text-[#475569]">
-                                    Chave: {cupom.nfeKey}
-                                </span>
-                            </p>
-                            <div className="flex gap-3 items-center justify-center">
-                                <Button onClick={() => setIsScannerOpen(true)}>
-                                    Escanear novamente
-                                </Button>
-                                <Button
-                                    onClick={handleSave}
-                                    disabled={isLoading}
-                                >
-                                    {isLoading ? "Salvando..." : "Salvar cupom"}
-                                </Button>
-                            </div>
-                            {error && <p style={{ color: "red" }}>{error}</p>}
-                        </div>
+                        <ReceiptForm
+                            initialData={cupom}
+                            onSubmit={onSave}
+                            onCancel={() => setIsScannerOpen(true)}
+                            isLoading={isLoading}
+                        />
                     ) : isLoading ? (
                         <div className="flex flex-col items-center justify-center gap-3">
                             <Loader />
@@ -267,14 +253,14 @@ function Dashboard() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
-                    title="Total em Impostos"
+                    title="Total em Impostos este mês"
                     value={formatCurrency(stats?.totalTaxes || 0)}
                     change="+0%"
                     isPositive={true}
                     icon={DollarSign}
                 />
                 <StatCard
-                    title="Total em Gastos"
+                    title="Total em Gastos este mês"
                     value={formatCurrency(stats?.totalSpent || 0)}
                     change="+0%"
                     isPositive={true}
@@ -288,7 +274,7 @@ function Dashboard() {
                     icon={Percent}
                 />
                 <StatCard
-                    title="Nota Mais Cara"
+                    title="Nota Mais Cara deste mês"
                     value={
                         mostExpensiveReceipt
                             ? formatCurrency(mostExpensiveReceipt.totalValue)
