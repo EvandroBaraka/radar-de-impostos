@@ -1,0 +1,45 @@
+{
+  "name": "projeto-radar-de-impostos",
+  "version": "1.0.0",
+  "description": "O **Radar de Impostos** é uma plataforma completa para o gerenciamento e visualização de impostos pagos em compras do dia a dia. Através da leitura de QR Codes de Notas Fiscais de Consumidor Eletrônicas (NFC-e), o sistema extrai automaticamente os dados de tributação e oferece um dashboard detalhado sobre a carga tributária do usuário.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix radar-de-impostos-api\" \"npm run dev --prefix radar-de-impostos-app\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EvandroBaraka/radar-de-impostos.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/EvandroBaraka/radar-de-impostos/issues"
+  },
+  "homepage": "https://github.com/EvandroBaraka/radar-de-impostos#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  },
+  "dependencies": {
+    "ansi-regex": "^6.2.2",
+    "ansi-styles": "^6.2.3",
+    "chalk": "^5.6.2",
+    "cliui": "^9.0.1",
+    "emoji-regex": "^10.6.0",
+    "escalade": "^3.2.0",
+    "get-caller-file": "^2.0.5",
+    "get-east-asian-width": "^1.6.0",
+    "rxjs": "^7.8.2",
+    "shell-quote": "^1.8.4",
+    "string-width": "^7.2.0",
+    "strip-ansi": "^7.2.0",
+    "supports-color": "^10.2.2",
+    "tree-kill": "^1.2.2",
+    "tslib": "^2.8.1",
+    "wrap-ansi": "^9.0.2",
+    "y18n": "^5.0.8",
+    "yargs": "^18.0.0",
+    "yargs-parser": "^22.0.0"
+  }
+}
