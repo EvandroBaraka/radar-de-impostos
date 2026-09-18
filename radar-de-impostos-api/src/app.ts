@@ -7,6 +7,7 @@ import errorHandler from "./middlewares/errorHandler.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
 import { apiReference } from "@scalar/express-api-reference";
+import { prisma } from "./utils/prisma.js";
 
 const app = express();
 const PORT = parseInt(process.env.PORT ?? "3000");
@@ -64,10 +65,21 @@ app.get("/", async (req, res) => {
 });
 
 app.get("/health", async (req, res) => {
-    res.send({
-        status: "ok",
-        timeStamp: new Date().toISOString(),
-    });
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+
+        return res.status(200).send({
+            status: "ok",
+            database: "connected",
+            timeStamp: new Date().toISOString(),
+        });
+    } catch (error) {
+        return res.status(500).send({
+            status: "error",
+            database: "disconnected",
+            timeStamp: new Date().toISOString(),
+        });
+    }
 });
 
 app.use("/api", router);
