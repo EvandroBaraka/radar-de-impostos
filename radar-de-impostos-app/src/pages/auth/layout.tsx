@@ -1,10 +1,12 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import bgImage from "../../assets/impostos-bg.jpg";
 import { Logo } from "../../components/Logo";
+import { isTokenExpired } from "../../utils/auth-utils";
 
 export const Route = createFileRoute("/auth")({
     beforeLoad: () => {
-        if (localStorage.getItem("token")) {
+        const token = localStorage.getItem("token");
+        if (token && !isTokenExpired(token)) {
             throw redirect({ to: "/dashboard" });
         }
     },

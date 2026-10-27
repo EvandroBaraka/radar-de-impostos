@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import basicSsl from '@vitejs/plugin-basic-ssl';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import tailwindcss from '@tailwindcss/vite'
 
@@ -18,7 +17,6 @@ export default defineConfig({
       routeToken: 'layout',
     }),  
     react(), 
-    basicSsl(),
     tailwindcss(),
   ],
   server: {

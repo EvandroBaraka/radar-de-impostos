@@ -3,23 +3,16 @@ import { useState } from "react";
 import { User, LogOut } from "lucide-react";
 import { Button } from "../Button";
 import { Logo } from "../Logo";
+import { useAuth } from "../../contexts/AuthContext/AuthContext";
 
 export const Header = () => {
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-        try {
-            return Boolean(localStorage.getItem("token"));
-        } catch {
-            return false;
-        }
-    });
+    const { isAuthenticated, logout } = useAuth();
 
     const handleLogout = () => {
-        localStorage.clear();
-        setIsAuthenticated(false);
+        logout();
         setIsDropdownOpen(false);
-
         navigate({ to: "/" });
     };
 

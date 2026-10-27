@@ -5,12 +5,15 @@ import { CupomFiscal } from "../../models/CupomFiscal";
 import { HistoryHeader } from "../../components/Receipts/HistoryHeader";
 import { ReceiptsTable } from "../../components/Receipts/ReceiptsTable";
 import { ReceiptDetailContent } from "../../components/Receipts/ReceiptDetailContent";
+import { useAuth } from "../../contexts/AuthContext/AuthContext";
+import { isTokenExpired } from "../../utils/auth-utils";
 
 const Modal = lazy(() => import("../../components/Modal"));
 
 export const Route = createFileRoute("/_app/history")({
     beforeLoad: () => {
-        if (!localStorage.getItem("token")) {
+        const token = localStorage.getItem("token");
+        if (!token || isTokenExpired(token)) {
             throw redirect({ to: "/auth/login" });
         }
     },
@@ -29,7 +32,7 @@ function History() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const token = localStorage.getItem("token") || "";
+    const { token } = useAuth();
     const LIMIT = 10;
 
     const loadReceipts = useCallback(
@@ -41,7 +44,7 @@ function History() {
                     setIsLoadingMore(true);
                 }
 
-                const data = await listReceipts(token, LIMIT, currentOffset);
+                const data = await listReceipts(token!, LIMIT, currentOffset);
 
                 if (clear) {
                     setReceipts(data);
@@ -86,7 +89,7 @@ function History() {
         if (!confirm("Tem certeza que deseja excluir este cupom?")) return;
 
         try {
-            await deleteReceipt(nfeKey, token);
+            await deleteReceipt(nfeKey, token!);
             setReceipts((prev) => prev.filter((r) => r.nfeKey !== nfeKey));
             alert("Cupom excluído com sucesso!");
             setIsModalOpen(false);

@@ -5,6 +5,7 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../Button";
 import { loginUser } from "../../services/auth";
+import { useAuth } from "../../contexts/AuthContext/AuthContext";
 
 const loginSchema = z.object({
     email: z.email("Utilize um email válido"),
@@ -29,6 +30,7 @@ export function LoginForm() {
 
     const navigate = useNavigate();
     const [error, setError] = useState<string | null>(null);
+    const { login } = useAuth();
 
     const onSubmit: SubmitHandler<LoginData> = async (data) => {
         setError(null);
@@ -36,10 +38,8 @@ export function LoginForm() {
         try {
             const userData = await loginUser(data.email, data.password);
 
-            // Salva o token localmente para autenticar as próximas requisições
-            localStorage.setItem("token", userData.token);
-            localStorage.setItem("userName", userData.userName);
-            localStorage.setItem("userEmail", userData.userEmail);
+            // Salva o token e dados usando o AuthContext
+            login(userData.token, userData.userName, userData.userEmail);
 
             // Redireciona o usuário para o dashboard após login bem sucedido
             navigate({ to: "/dashboard" });
