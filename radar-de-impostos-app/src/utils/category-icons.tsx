@@ -22,7 +22,3 @@ export const categoryIcons: { [key: string]: React.ElementType } = {
     Transporte: Bus,
     Outros: ReceiptIcon,
 };
-
-export const getCategoryIcon = (category: string) => {
-    return categoryIcons[category] || ReceiptIcon;
-};

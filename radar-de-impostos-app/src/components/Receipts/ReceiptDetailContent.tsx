@@ -1,5 +1,5 @@
 import { CupomFiscal } from "../../models/CupomFiscal";
-import { getCategoryIcon } from "../../utils/category-icons";
+import { categoryIcons } from "../../utils/category-icons";
 import { Button } from "../Button";
 
 interface ReceiptDetailContentProps {
@@ -13,7 +13,7 @@ export function ReceiptDetailContent({
     onDelete,
     onClose,
 }: ReceiptDetailContentProps) {
-    const Icon = getCategoryIcon(receipt.category);
+    const Icon = categoryIcons[receipt.category];
 
     return (
         <div className="space-y-6">

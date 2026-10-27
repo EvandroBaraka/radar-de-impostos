@@ -1,6 +1,6 @@
 import { Eye, Trash2 } from "lucide-react";
 import { CupomFiscal } from "../../models/CupomFiscal";
-import { getCategoryIcon } from "../../utils/category-icons";
+import { categoryIcons } from "../../utils/category-icons";
 
 interface ReceiptTableRowProps {
     receipt: CupomFiscal;
@@ -13,7 +13,7 @@ export function ReceiptTableRow({
     onViewDetails,
     onDelete,
 }: ReceiptTableRowProps) {
-    const Icon = getCategoryIcon(receipt.category);
+    const Icon = categoryIcons[receipt.category];
 
     return (
         <tr className="hover:bg-[#1e293b]/30 transition-colors group">

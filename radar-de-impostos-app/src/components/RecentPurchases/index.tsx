@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { CupomFiscal } from "../../models/CupomFiscal";
-import { getCategoryIcon } from "../../utils/category-icons";
+import { categoryIcons } from "../../utils/category-icons";
 
 interface RecentPurchasesProps {
     receipts: CupomFiscal[];
@@ -17,7 +17,7 @@ export function RecentPurchases({ receipts }: RecentPurchasesProps) {
                     </p>
                 ) : (
                     receipts.slice(0, 5).map((receipt, index) => {
-                        const Icon = getCategoryIcon(receipt.category);
+                        const Icon = categoryIcons[receipt.category];
                         return (
                             <div
                                 key={receipt.nfeKey || index}
