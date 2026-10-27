@@ -9,6 +9,14 @@ const summary = async (req: Request, res: Response) => {
     return res.status(200).json(summaryData);
 };
 
+const monthly = async (req: Request, res: Response) => {
+    const monthlyData = await CouponService.getMonthlyTaxesSummary(
+        req.user?.id,
+    );
+    return res.status(200).json(monthlyData);
+};
+
 export default {
     summary,
+    monthly,
 };

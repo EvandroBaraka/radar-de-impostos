@@ -1,15 +1,21 @@
 import { CupomFiscal } from "../models/CupomFiscal";
+import { apiFetch } from "../lib/api";
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+export interface MonthlyTaxSummary {
+    name: string;
+    gastos: number;
+    impostos: number;
+}
 
 export const saveReceipt = async (cupom: CupomFiscal, token: string) => {
     console.log("Salvando cupom:", cupom);
 
-    const response = await fetch(`${API_URL}/api/receipts/add`, {
+    const response = await apiFetch(`${API_URL}/api/receipts/add`, token, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
             storeName: cupom.storeName,
@@ -46,15 +52,12 @@ export const listReceipts = async (
     offset?: number,
 ): Promise<CupomFiscal[]> => {
     const url = new URL(`${API_URL}/api/receipts/list`);
+
     if (limit !== undefined) url.searchParams.append("limit", limit.toString());
     if (offset !== undefined)
         url.searchParams.append("offset", offset.toString());
 
-    const response = await fetch(url.toString(), {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+    const response = await apiFetch(url.toString(), token);
 
     if (!response.ok) {
         throw new Error("Erro ao buscar cupons");
@@ -85,11 +88,8 @@ export const listReceipts = async (
 };
 
 export const deleteReceipt = async (nfeKey: string, token: string) => {
-    const response = await fetch(`${API_URL}/api/receipts/${nfeKey}`, {
+    const response = await apiFetch(`${API_URL}/api/receipts/${nfeKey}`, token, {
         method: "DELETE",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
     });
 
     if (!response.ok) {
@@ -100,14 +100,21 @@ export const deleteReceipt = async (nfeKey: string, token: string) => {
 };
 
 export const getStats = async (token: string) => {
-    const response = await fetch(`${API_URL}/api/stats/summary`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+    const response = await apiFetch(`${API_URL}/api/stats/summary`, token);
 
     if (!response.ok) {
         throw new Error("Erro ao buscar estatísticas");
+    }
+
+    return await response.json();
+};
+
+
+export const getMonthlyStats = async (token: string): Promise<MonthlyTaxSummary[]> => {
+    const response = await apiFetch(`${API_URL}/api/stats/monthly`, token);
+
+    if (!response.ok) {
+        throw new Error("Erro ao buscar histórico mensal");
     }
 
     return await response.json();

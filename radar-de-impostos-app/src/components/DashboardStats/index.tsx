@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { CupomFiscal } from "../../models/CupomFiscal";
 import { StatCard } from "../StatCard";
+import { formatCurrency } from "../../utils/money-utils";
 
 interface DashboardStatsProps {
     stats: {
@@ -16,13 +17,6 @@ interface DashboardStatsProps {
 }
 
 export function DashboardStats({ stats, receipts }: DashboardStatsProps) {
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-        }).format(value);
-    };
-
     const taxBurden =
         stats && stats.totalSpent > 0
             ? ((stats.totalTaxes / stats.totalSpent) * 100).toFixed(1)

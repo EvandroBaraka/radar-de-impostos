@@ -49,4 +49,31 @@ router.use(authMiddleware);
  */
 router.get("/summary", StatsController.summary);
 
+/**
+ * @openapi
+ * /api/stats/monthly:
+ *   get:
+ *     summary: Retorna gastos e impostos dos últimos seis meses
+ *     tags: [Stats]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Série mensal de gastos e impostos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                   gastos:
+ *                     type: number
+ *                   impostos:
+ *                     type: number
+ */
+router.get("/monthly", StatsController.monthly);
+
 export default router;

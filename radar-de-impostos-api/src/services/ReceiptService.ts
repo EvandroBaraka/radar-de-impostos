@@ -32,7 +32,11 @@ const createReceipt = async (userId: string, data: Receipt) => {
     });
 };
 
-const listReceipts = async (userId: string | undefined, limit?: number, offset?: number) => {
+const listReceipts = async (
+    userId: string | undefined,
+    limit?: number,
+    offset?: number,
+) => {
     const query: any = {
         where: {
             userId,
@@ -93,6 +97,90 @@ const getTaxesSummary = async (userId: string | undefined, query: any) => {
     };
 };
 
+const getMonthlyTaxesSummary = async (userId: string | undefined) => {
+    const now = new Date();
+    const currentMonth = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+    );
+    const firstMonth = new Date(
+        Date.UTC(
+            currentMonth.getUTCFullYear(),
+            currentMonth.getUTCMonth() - 5,
+            1,
+        ),
+    );
+    const nextMonth = new Date(
+        Date.UTC(
+            currentMonth.getUTCFullYear(),
+            currentMonth.getUTCMonth() + 1,
+            1,
+        ),
+    );
+
+    const months = Array.from({ length: 6 }, (_, index) => {
+        const month = new Date(
+            Date.UTC(
+                firstMonth.getUTCFullYear(),
+                firstMonth.getUTCMonth() + index,
+                1,
+            ),
+        );
+        const key = `${month.getUTCFullYear()}-${String(
+            month.getUTCMonth() + 1,
+        ).padStart(2, "0")}`;
+
+        return {
+            key,
+            name: new Intl.DateTimeFormat("pt-BR", {
+                month: "short",
+                timeZone: "America/Sao_Paulo",
+            })
+                .format(month)
+                .replace(".", "")
+                .replace(/^./, (letter) => letter.toUpperCase()),
+            gastos: 0,
+            impostos: 0,
+        };
+    });
+
+    if (!userId) {
+        return months.map(({ key: _key, ...month }) => month);
+    }
+
+    const receipts = await prisma.receipts.findMany({
+        where: {
+            userId,
+            purchaseDate: {
+                gte: firstMonth,
+                lt: nextMonth,
+            },
+        },
+        select: {
+            totalValue: true,
+            tributes: true,
+            purchaseDate: true,
+        },
+    });
+
+    const totalsByMonth = new Map(months.map((month) => [month.key, month]));
+
+    for (const receipt of receipts) {
+        if (!receipt.purchaseDate) continue;
+
+        const monthKey = `${receipt.purchaseDate.getUTCFullYear()}-${String(
+            receipt.purchaseDate.getUTCMonth() + 1,
+        ).padStart(2, "0")}`;
+        const month = totalsByMonth.get(monthKey);
+
+        if (month) {
+            month.gastos += receipt.totalValue;
+            month.impostos += receipt.tributes;
+        }
+    }
+
+    return months.map(({ key: _key, ...month }) => month);
+};
+
 export default {
     createReceipt,
     listReceipts,
@@ -100,4 +188,5 @@ export default {
     getReceiptByNfeKey,
     deleteReceipt,
     getTaxesSummary,
+    getMonthlyTaxesSummary,
 };

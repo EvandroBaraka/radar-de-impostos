@@ -2,31 +2,33 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState, lazy, Suspense, useEffect, useCallback } from "react";
 import { QrCode } from "lucide-react";
 import { fetchNFCe } from "../../services/fetch-nfce";
-import { saveReceipt, listReceipts, getStats } from "../../services/receipts";
+import {
+    saveReceipt,
+    listReceipts,
+    getStats,
+    getMonthlyStats,
+    type MonthlyTaxSummary,
+} from "../../services/receipts";
 import { CupomFiscal } from "../../models/CupomFiscal";
 import Loader from "../../components/Loader";
-import { ReceiptForm, type ReceiptFormData } from "../../components/ReceiptForm";
+import {
+    ReceiptForm,
+    type ReceiptFormData,
+} from "../../components/ReceiptForm";
 import { DashboardStats } from "../../components/DashboardStats";
 import { OverviewChart } from "../../components/OverviewChart";
 import { RecentPurchases } from "../../components/RecentPurchases";
 import { Button } from "../../components/Button";
+import { useAuth } from "../../contexts/AuthContext/AuthContext";
+import { isTokenExpired } from "../../utils/auth-utils";
 
 const Modal = lazy(() => import("../../components/Modal"));
 const QrScanner = lazy(() => import("../../components/QrScanner"));
 
-// Mock data para o gráfico enquanto a API não fornece dados históricos por mês
-const chartData = [
-    { name: "Dez", gastos: 2400, impostos: 400 },
-    { name: "Jan", gastos: 1800, impostos: 350 },
-    { name: "Fev", gastos: 2900, impostos: 550 },
-    { name: "Mar", gastos: 2200, impostos: 440 },
-    { name: "Abr", gastos: 3100, impostos: 620 },
-    { name: "Mai", gastos: 2700, impostos: 540 },
-];
-
 export const Route = createFileRoute("/_app/dashboard")({
     beforeLoad: () => {
-        if (!localStorage.getItem("token")) {
+        const token = localStorage.getItem("token");
+        if (!token || isTokenExpired(token)) {
             throw redirect({ to: "/auth/login" });
         }
     },
@@ -40,25 +42,29 @@ function Dashboard() {
     const [cupom, setCupom] = useState<CupomFiscal | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [receipts, setReceipts] = useState<CupomFiscal[]>([]);
+    const [monthlyStats, setMonthlyStats] = useState<MonthlyTaxSummary[]>([]);
     const [stats, setStats] = useState<{
         totalSpent: number;
         totalTaxes: number;
     } | null>(null);
 
-    const userName = localStorage.getItem("userName");
-    const token = localStorage.getItem("token");
+    const { user, token } = useAuth();
+    const userName = user?.userName;
 
     const loadDashboardData = useCallback(async () => {
         if (!token) return;
 
         try {
-            const [receiptsData, statsData] = await Promise.all([
-                listReceipts(token),
-                getStats(token),
-            ]);
+            const [receiptsData, statsData, monthlyStatsData] =
+                await Promise.all([
+                    listReceipts(token),
+                    getStats(token),
+                    getMonthlyStats(token),
+                ]);
 
             setReceipts(receiptsData);
             setStats(statsData);
+            setMonthlyStats(monthlyStatsData);
         } catch (err) {
             console.error("Erro ao carregar dados da dashboard:", err);
         }
@@ -106,7 +112,10 @@ function Dashboard() {
             setCupom(null);
             setError(null);
 
-            if (qrCodeData.startsWith("http") && qrCodeData.toLowerCase().includes("nfce")) {
+            if (
+                qrCodeData.startsWith("http") &&
+                qrCodeData.toLowerCase().includes("nfce")
+            ) {
                 fetchData(qrCodeData);
                 setIsScannerOpen(false);
             } else {
@@ -211,7 +220,11 @@ function Dashboard() {
                 <Modal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    title={isScannerOpen ? "Escanear Cupom Fiscal" : "Incluir Cupom Fiscal"}
+                    title={
+                        isScannerOpen
+                            ? "Escanear Cupom Fiscal"
+                            : "Incluir Cupom Fiscal"
+                    }
                 >
                     {isScannerOpen ? (
                         <QrScanner
@@ -248,7 +261,7 @@ function Dashboard() {
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Chart Section */}
-                <OverviewChart data={chartData} />
+                <OverviewChart data={monthlyStats} />
 
                 {/* Last Purchases Section */}
                 <RecentPurchases receipts={receipts} />
