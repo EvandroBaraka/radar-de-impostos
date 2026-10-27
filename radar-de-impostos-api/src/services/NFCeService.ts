@@ -92,7 +92,7 @@ const fetchNFCeData = async (url: string): Promise<NFCeResult> => {
     }
 
     const totalValue = parseFloat(
-        $("span.txtMax").text().trim().replace(",", "."),
+        $("span.txtMax").text().trim().replace(/\./g, "").replace(",", "."),
     );
 
     const stringWithDate = $('h4:contains("Informações gerais da Nota")')
